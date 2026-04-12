@@ -50,6 +50,7 @@ import kotlin.toString
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import org.ramani.compose.Symbol
 
 
 class MainActivity : ComponentActivity(), LocationListener {
@@ -76,9 +77,9 @@ class MainActivity : ComponentActivity(), LocationListener {
                             MapScreen(navController)
                         }
                         composable("addPOIScreen") {
-                            AddPOIScreen() {
-                                navController.popBackStack()
-                            }
+                            AddPOIScreen(
+                                currentLatLng = viewModel.latLng,
+                                returnToMapScreenCallback = { navController.popBackStack() })
                         }
                     }
                 }
@@ -111,6 +112,7 @@ class MainActivity : ComponentActivity(), LocationListener {
     fun MapScreen(navController: NavController) {
         var currentPosition by remember { mutableStateOf(viewModel.latLng) }
         var zoom by remember { mutableDoubleStateOf(viewModel.zoom) }
+        var pois by remember { mutableStateOf(viewModel.poisList.value ?: emptyList()) }
 
         viewModel.latLngLiveData.observe(this) {
             currentPosition = it
@@ -118,6 +120,10 @@ class MainActivity : ComponentActivity(), LocationListener {
 
         viewModel.zoomLiveData.observe(this) {
             zoom = it
+        }
+
+        viewModel.poisList.observe(this) {
+            pois = it
         }
 
         val styleBuilder = Style.Builder()
@@ -131,7 +137,11 @@ class MainActivity : ComponentActivity(), LocationListener {
                     target = currentPosition,
                     zoom = zoom
                 )
-            )
+            ) {
+                pois.forEach { poi ->
+                    Symbol(center = poi.latLng)
+                }
+            }
             Button(onClick =  { navController.navigate("addPOIScreen") }) {
                 Text("Go to Add POI Screen")
             }
@@ -140,12 +150,17 @@ class MainActivity : ComponentActivity(), LocationListener {
     }
 
     @Composable
-    fun AddPOIScreen( returnToMapScreenCallback: () -> Unit) {
+    fun AddPOIScreen(currentLatLng: LatLng, returnToMapScreenCallback: () -> Unit) {
 
         var nameText by remember { mutableStateOf("")}
         var typeText by remember { mutableStateOf("")}
         var descriptionText by remember { mutableStateOf("")}
+        var errorMessage by remember { mutableStateOf("") }
+
         Column() {
+            if (errorMessage.isNotEmpty()) {
+                Text(errorMessage)
+            }
             TextField(
                 modifier = Modifier.padding(8.dp),
                 value = nameText,
@@ -169,6 +184,18 @@ class MainActivity : ComponentActivity(), LocationListener {
             Row {
                 Button(modifier = Modifier.weight(1f),
                 onClick = {
+                    if (nameText.isBlank() || typeText.isBlank() || descriptionText.isBlank()) {
+                        errorMessage = "Please fill in all fields before adding."
+                    } else {
+
+                        val poi = PointOfInterest(
+                            name = nameText.trim(),
+                            type = typeText.trim(),
+                            description = descriptionText.trim(),
+                            latLng = currentLatLng
+                        )
+                    viewModel.addPOI(poi)
+                    }
 
                 }) {Text("Add marker to map.")}
 
