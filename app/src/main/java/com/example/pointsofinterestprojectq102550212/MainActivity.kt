@@ -13,27 +13,42 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.pointsofinterestprojectq102550212.ui.theme.PointsOfInterestProjectQ102550212Theme
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.Style
 import org.ramani.compose.CameraPosition
 import org.ramani.compose.MapLibre
+import kotlin.toString
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 
 
 class MainActivity : ComponentActivity(), LocationListener {
@@ -46,7 +61,27 @@ class MainActivity : ComponentActivity(), LocationListener {
         checkPermissions()
 
         setContent {
-            MapScreen()
+            PointsOfInterestProjectQ102550212Theme {
+                val navController = rememberNavController()
+                val coroutineScope = rememberCoroutineScope()
+
+                Scaffold() { innerPadding ->
+                    NavHost(
+                        navController = navController,
+                        startDestination = "mapScreen",
+                        modifier = Modifier.padding(innerPadding)
+                    ) {
+                        composable("mapScreen") {
+                            MapScreen(navController)
+                        }
+                        composable("addPOIScreen") {
+                            AddPOIScreen() {
+                                navController.popBackStack()
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     fun checkPermissions() {
@@ -72,7 +107,7 @@ class MainActivity : ComponentActivity(), LocationListener {
         viewModel.latLng = LatLng(location.latitude, location.longitude)
     }
     @Composable
-    fun MapScreen() {
+    fun MapScreen(navController: NavController) {
         var currentPosition by remember { mutableStateOf(viewModel.latLng) }
         var zoom by remember { mutableDoubleStateOf(viewModel.zoom) }
 
@@ -87,16 +122,32 @@ class MainActivity : ComponentActivity(), LocationListener {
         val styleBuilder = Style.Builder()
             .fromUri("https://tiles.openfreemap.org/styles/bright")
 
-        MapLibre(
-            modifier = Modifier.fillMaxSize(),
-            styleBuilder = styleBuilder,
-            cameraPosition = CameraPosition(
-                target = currentPosition,
-                zoom = zoom
+        Column{
+            MapLibre(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                styleBuilder = styleBuilder,
+                cameraPosition = CameraPosition(
+                    target = currentPosition,
+                    zoom = zoom
+                )
             )
-        ) {
+            Button(onClick =  { navController.navigate("addPOIScreen") }) {
+                Text("Go to Add POI Screen")
+            }
         }
+
     }
+
+    @Composable
+    fun AddPOIScreen( returnToMapScreenCallback: () -> Unit) {
+        Text("Add POI Screen")
+        Button(onClick = {
+            returnToMapScreenCallback()
+        }) { Text("Return") }
+
+
+    }
+
 }
 
 

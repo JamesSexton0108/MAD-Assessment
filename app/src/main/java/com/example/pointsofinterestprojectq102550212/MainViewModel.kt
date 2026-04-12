@@ -10,12 +10,12 @@ class MainViewModel: ViewModel() {
             field = newValue
             latLngLiveData.value = newValue
         }
-    var latLngLiveData = MutableLiveData<LatLng>(latLng)
+    var latLngLiveData = MutableLiveData<LatLng>()
 
     var zoom: Double = 14.0
         set(newValue) {
             field = newValue
             zoomLiveData.value = newValue
         }
-    var zoomLiveData = MutableLiveData<Double>(zoom)
+    var zoomLiveData = MutableLiveData<Double>()
 }
