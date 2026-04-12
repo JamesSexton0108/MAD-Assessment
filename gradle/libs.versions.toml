@@ -10,9 +10,11 @@ kotlin = "2.0.21"
 composeBom = "2024.09.00"
 maplibre ="11.11.0"
 ramanimaps = "0.10.0"
+navigationCompose = "2.9.7"
 
 
 [libraries]
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 maplibre = { group = "org.maplibre.gl", name = "android-sdk", version.ref = "maplibre"}
 ramanimaps = { group="org.ramani-maps", name="ramani-maplibre", version.ref="ramanimaps" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
