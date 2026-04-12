@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.keepScreenOn
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -140,10 +141,45 @@ class MainActivity : ComponentActivity(), LocationListener {
 
     @Composable
     fun AddPOIScreen( returnToMapScreenCallback: () -> Unit) {
-        Text("Add POI Screen")
-        Button(onClick = {
-            returnToMapScreenCallback()
-        }) { Text("Return") }
+
+        var nameText by remember { mutableStateOf("")}
+        var typeText by remember { mutableStateOf("")}
+        var descriptionText by remember { mutableStateOf("")}
+        Column() {
+            TextField(
+                modifier = Modifier.padding(8.dp),
+                value = nameText,
+                onValueChange = {nameText = it},
+                label = {Text("Enter the name of the location")}
+            )
+
+            TextField(
+                modifier = Modifier.padding(8.dp),
+                value = typeText,
+                onValueChange = {typeText = it},
+                label = {Text("Enter the type (pub, restaurant, hotel etc.) of the location")}
+            )
+
+            TextField(
+                modifier = Modifier.padding(8.dp),
+                value = descriptionText,
+                onValueChange = {descriptionText = it},
+                label = {Text("Enter a brief description of the location")}
+            )
+            Row {
+                Button(modifier = Modifier.weight(1f),
+                onClick = {
+
+                }) {Text("Add marker to map.")}
+
+                Button(modifier = Modifier.weight(1f),
+                    onClick = {
+                    returnToMapScreenCallback()
+                }) { Text("Return") }
+            }
+        }
+
+
 
 
     }
