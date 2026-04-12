@@ -19,12 +19,21 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.pointsofinterestprojectq102550212.ui.theme.PointsOfInterestProjectQ102550212Theme
 import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.maps.Style
+import org.ramani.compose.CameraPosition
+import org.ramani.compose.MapLibre
 
 
 class MainActivity : ComponentActivity(), LocationListener {
@@ -37,7 +46,7 @@ class MainActivity : ComponentActivity(), LocationListener {
         checkPermissions()
 
         setContent {
-            MapScreen(viewModel = viewModel)
+            MapScreen()
         }
     }
     fun checkPermissions() {
@@ -62,6 +71,34 @@ class MainActivity : ComponentActivity(), LocationListener {
     override fun onLocationChanged(location: Location) {
         viewModel.latLng = LatLng(location.latitude, location.longitude)
     }
+    @Composable
+    fun MapScreen() {
+        var currentPosition by remember { mutableStateOf(viewModel.latLng) }
+        var zoom by remember { mutableDoubleStateOf(viewModel.zoom) }
+
+        viewModel.latLngLiveData.observe(this) {
+            currentPosition = it
+        }
+
+        viewModel.zoomLiveData.observe(this) {
+            zoom = it
+        }
+
+        val styleBuilder = Style.Builder()
+            .fromUri("https://tiles.openfreemap.org/styles/bright")
+
+        MapLibre(
+            modifier = Modifier.fillMaxSize(),
+            styleBuilder = styleBuilder,
+            cameraPosition = CameraPosition(
+                target = currentPosition,
+                zoom = zoom
+            )
+        ) {
+        }
+    }
 }
+
+
 
 
