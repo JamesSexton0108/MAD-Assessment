@@ -18,3 +18,14 @@ across recompositions in Compose. I will use a function called
 onLocationChanged() to check the GPS location of the user's device, with
 this information then being sent to the viewmodel. Finally a map will
 display the latitude and longitude stored in the ViewModel.
+
+Part 2
+
+For requirement 2 I will need to create a separate composable for the
+user to input location details from. I will then need to utilise a nav
+host composable to host each composable screen, as well as a nav
+controller to control the navigation between these screens. The separate
+"add POI" composable will contain inputs for name, type and description
+as well as a button to add the new location to the map and a button to
+return to the map screen. The location will be marked on the map by a
+maplibre symbol.
