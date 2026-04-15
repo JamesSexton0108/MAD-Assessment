@@ -29,3 +29,26 @@ controller to control the navigation between these screens. The separate
 as well as a button to add the new location to the map and a button to
 return to the map screen. The location will be marked on the map by a
 maplibre symbol.
+
+Part 3
+
+For part three, I will utilize the Room API in order to allow the user
+to save all points of interest to an SQL database. This could be done
+without Room, but using it means that all SQL logic can be kept away
+from the main activity in such a way that is neat and tidy. To use Room
+efficiently, I will need to create a DAO which will control all
+interactions with the database. For this requirement, that will just be
+inserting all POIs that have been added to the map. There will also need
+to be a data entity, which essentially just defines the data that will
+be put into the table. As I am using the given pointsofinterest.db
+table, the data entity will have to match the pointsofinterest table
+with columns for id, name, type, country, region, lon, lat, description
+and recommendations. id will also use autoGenerate = true, meaning it
+will match the autoincrement behaviour of the database. A database class
+will also need to be created as that is what the Room DAO will operate
+through; it encapsulates the database as a whole. The database will need
+to exist as a companion object in order to ensure that multiple copies
+of the database are never created. Room is also useful as it integrates
+well with the preexisting viewmodel. This is because the LiveData list
+of POIs can be obtained directly from the DAO and stored as a property
+which can be observed.
