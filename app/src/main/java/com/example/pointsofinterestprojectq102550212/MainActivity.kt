@@ -154,6 +154,8 @@ class MainActivity : ComponentActivity(), LocationListener {
 
         var nameText by remember { mutableStateOf("")}
         var typeText by remember { mutableStateOf("")}
+        var countryText by remember { mutableStateOf("")}
+        var regionText by remember { mutableStateOf("")}
         var descriptionText by remember { mutableStateOf("")}
         var errorMessage by remember { mutableStateOf("") }
 
@@ -177,6 +179,19 @@ class MainActivity : ComponentActivity(), LocationListener {
 
             TextField(
                 modifier = Modifier.padding(8.dp),
+                value = countryText,
+                onValueChange = { countryText = it },
+                label = { Text("Enter the country") }
+            )
+            TextField(
+                modifier = Modifier.padding(8.dp),
+                value = regionText,
+                onValueChange = { regionText = it },
+                label = { Text("Enter the region") }
+            )
+
+            TextField(
+                modifier = Modifier.padding(8.dp),
                 value = descriptionText,
                 onValueChange = {descriptionText = it},
                 label = {Text("Enter a brief description of the location")}
@@ -184,13 +199,17 @@ class MainActivity : ComponentActivity(), LocationListener {
             Row {
                 Button(modifier = Modifier.weight(1f),
                 onClick = {
-                    if (nameText.isBlank() || typeText.isBlank() || descriptionText.isBlank()) {
+                    if (nameText.isBlank() || typeText.isBlank() ||
+                        countryText.isBlank() || regionText.isBlank() ||
+                        descriptionText.isBlank()) {
                         errorMessage = "Please fill in all fields before adding."
                     } else {
 
                         val poi = PointOfInterest(
                             name = nameText.trim(),
                             type = typeText.trim(),
+                            country = countryText.trim(),
+                            region = regionText.trim(),
                             description = descriptionText.trim(),
                             latLng = currentLatLng
                         )
