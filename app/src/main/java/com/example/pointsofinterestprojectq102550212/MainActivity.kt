@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -113,6 +114,7 @@ class MainActivity : ComponentActivity(), LocationListener {
         var currentPosition by remember { mutableStateOf(viewModel.latLng) }
         var zoom by remember { mutableDoubleStateOf(viewModel.zoom) }
         var pois by remember { mutableStateOf(viewModel.poisList.value ?: emptyList()) }
+        var selectedPOI by remember { mutableStateOf<PointOfInterest?>(null) }
 
         viewModel.latLngLiveData.observe(this) {
             currentPosition = it
@@ -139,14 +141,49 @@ class MainActivity : ComponentActivity(), LocationListener {
                 )
             ) {
                 pois.forEach { poi ->
-                    Symbol(center = poi.latLng)
+                    Symbol(center = poi.latLng,
+                            isDraggable = false,
+                        onClick = {
+                            selectedPOI = poi
+                        })
                 }
             }
-            Button(onClick =  { navController.navigate("addPOIScreen") }) {
+            Button(
+                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                onClick =  { navController.navigate("addPOIScreen") }) {
                 Text("Go to Add POI Screen")
             }
         }
+        selectedPOI?.let { poi ->
+            POIDetailDialog(
+                poi = poi,
+                onDismiss = { selectedPOI = null }
+            )
+        }
 
+    }
+
+    @Composable
+    fun POIDetailDialog(poi: PointOfInterest, onDismiss: () -> Unit) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text(poi.name) },
+            text = {
+                Column {
+                    Text("Type: ${poi.type}")
+                    Text("Country: ${poi.country}")
+                    Text("Region: ${poi.region}")
+                    Text("Description: ${poi.description}")
+                    Text("Latitude: ${poi.latLng.latitude}")
+                    Text("Longitude: ${poi.latLng.longitude}")
+                }
+            },
+            confirmButton = {
+                Button(onClick = onDismiss) {
+                    Text("Close")
+                }
+            }
+        )
     }
 
     @Composable
@@ -224,8 +261,6 @@ class MainActivity : ComponentActivity(), LocationListener {
                 }) { Text("Return") }
             }
         }
-
-
 
 
     }
