@@ -52,3 +52,20 @@ of the database are never created. Room is also useful as it integrates
 well with the preexisting viewmodel. This is because the LiveData list
 of POIs can be obtained directly from the DAO and stored as a property
 which can be observed.
+
+Part 4
+
+For part 3, I made a mistake when planning in that I assumed the
+pointsofinterest.db table used for later web based tasks was the table
+that would be accessed by Room in these tasks as opposed to a different,
+local database being used. As such, part of the part 3 segment is wrong,
+but I have kept it the same in the spirit of the assignment. As a result
+of this confusion, I ended up implementing the first problem of part 4,
+as the points of interest stored in the local database are automatically
+loaded onto the map as symbols whenever the app starts. As described at
+the end of part 3, this is done using the getAll() method in the DAO
+which returns LiveData\<List\<POIEntity\>\> which is converted into a
+list of PointOfInterest objects stored by the viewmodel, which is then
+iterated through on the map screen, assigning each POI a symbol. onClick
+can be used to detect when the user taps a symbol, which can then be
+used in conjunction with AlertDialog to show the relevant POIs details.
