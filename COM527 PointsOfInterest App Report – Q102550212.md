@@ -69,3 +69,10 @@ list of PointOfInterest objects stored by the viewmodel, which is then
 iterated through on the map screen, assigning each POI a symbol. onClick
 can be used to detect when the user taps a symbol, which can then be
 used in conjunction with AlertDialog to show the relevant POIs details.
+A nullable state variable will be used to track which POI has been
+tapped, defaulting to null when no marker has been selected. When a
+marker is tapped its corresponding POI will be stored in this variable,
+triggering the dialog to appear. The onDismissRequest parameter of
+AlertDialog will handle the case where the user taps outside the dialog,
+and a Close button will be provided as the confirmButton; both will
+reset the state variable to null, dismissing the dialog.
