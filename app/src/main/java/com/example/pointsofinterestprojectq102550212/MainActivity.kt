@@ -32,6 +32,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Blue
 import androidx.compose.ui.keepScreenOn
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -51,6 +53,7 @@ import kotlin.toString
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import org.ramani.compose.Circle
 import org.ramani.compose.Symbol
 
 
@@ -114,6 +117,8 @@ class MainActivity : ComponentActivity(), LocationListener {
         var currentPosition by remember { mutableStateOf(viewModel.latLng) }
         var zoom by remember { mutableDoubleStateOf(viewModel.zoom) }
         var pois by remember { mutableStateOf(viewModel.poisList.value ?: emptyList()) }
+        var searchResults by remember { mutableStateOf(listOf<PointOfInterest>()) }
+        var typeSearchText by remember { mutableStateOf("")}
         var selectedPOI by remember { mutableStateOf<PointOfInterest?>(null) }
 
         viewModel.latLngLiveData.observe(this) {
@@ -141,13 +146,47 @@ class MainActivity : ComponentActivity(), LocationListener {
                 )
             ) {
                 pois.forEach { poi ->
-                    Symbol(center = poi.latLng,
-                            isDraggable = false,
+                    Symbol(
+                        center = poi.latLng,
+                        isDraggable = false,
+                        onClick = {
+                            selectedPOI = poi
+                        })
+                }
+                
+                searchResults.forEach { poi ->
+                    Circle(
+                        center = poi.latLng,
+                        radius = 15f,
+                        isDraggable = false,
+                        color = "Blue",
                         onClick = {
                             selectedPOI = poi
                         })
                 }
             }
+
+            Row(modifier = Modifier.padding(8.dp)) {
+                TextField(
+                    modifier = Modifier.weight(1f),
+                    value = typeSearchText,
+                    onValueChange = { typeSearchText = it },
+                    label = { Text("Search by type") }
+                )
+                Button(
+                    modifier = Modifier.padding(start = 8.dp),
+                    onClick = {
+                        if (typeSearchText.isNotBlank()) {
+                            viewModel.searchByType(typeSearchText.trim()).observe(this@MainActivity) {
+                                searchResults = it
+                            }
+                        }
+                    }
+                ) {
+                    Text("Search")
+                }
+            }
+
             Button(
                 modifier = Modifier.fillMaxWidth().padding(8.dp),
                 onClick =  { navController.navigate("addPOIScreen") }) {

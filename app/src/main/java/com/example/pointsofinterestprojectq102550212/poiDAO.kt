@@ -13,6 +13,6 @@ interface poiDAO {
     @Query("SELECT * FROM pointsofinterest")
     fun getAll(): LiveData<List<POIEntity>>
 
-    @Query("SELECT * FROM pointsofinterest WHERE type = :type")
+    @Query("SELECT * FROM pointsofinterest WHERE type = :type COLLATE NOCASE")
     fun getByType(type: String): LiveData<List<POIEntity>>
 }
