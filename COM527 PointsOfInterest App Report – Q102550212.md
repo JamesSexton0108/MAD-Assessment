@@ -76,3 +76,18 @@ triggering the dialog to appear. The onDismissRequest parameter of
 AlertDialog will handle the case where the user taps outside the dialog,
 and a Close button will be provided as the confirmButton; both will
 reset the state variable to null, dismissing the dialog.
+
+Part 5
+
+For part 5, I will create a new query method in the DAO which will
+search the local database for points of interest with a desired type.
+This can be achieved with the SQL statement "SELECT \* FROM
+pointsofinterest WHERE type = :type". As with the first query method
+getAll(), this will return LiveData\<List\<POIEntity\>\>, which can then
+be converted to PointOfInterest objects by the viewModel ready to be
+displayed on the map. Because LiveData is used, the map will update
+automatically when results are delivered without any manual refresh
+being needed. The POIs with the searched for types will then be
+highlighted on the map using the circle instead of the marker. These
+circles will of course retain the ability to be clicked, showing their
+details as any other marker would.
