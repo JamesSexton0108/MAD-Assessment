@@ -50,6 +50,21 @@ class MainViewModel(app: Application): AndroidViewModel(app) {
         }
     }
 
+    fun searchByType(type: String): LiveData<List<PointOfInterest>> {
+        return db.poiDao().getByType(type).map { entities ->
+            entities.map { entity ->
+                PointOfInterest(
+                    name = entity.name,
+                    type = entity.type,
+                    country = entity.country,
+                    region = entity.region,
+                    description = entity.description,
+                    latLng = LatLng(entity.lat, entity.lon)
+                )
+            }
+        }
+    }
+
     fun addPOI(poi: PointOfInterest) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
