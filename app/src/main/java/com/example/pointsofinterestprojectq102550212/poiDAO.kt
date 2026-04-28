@@ -12,4 +12,7 @@ interface poiDAO {
 
     @Query("SELECT * FROM pointsofinterest")
     fun getAll(): LiveData<List<POIEntity>>
+
+    @Query("SELECT * FROM pointsofinterest WHERE type = :type")
+    fun getByType(type: String): LiveData<List<POIEntity>>
 }
