@@ -14,6 +14,7 @@ navigationCompose = "2.9.7"
 room = "2.8.4"
 ksp = "2.3.6"
 lifecycleLivedataKtx = "2.10.0"
+fuel = "2.3.1"
 
 
 [libraries]
@@ -38,6 +39,9 @@ room-runtime = {group = "androidx.room", name = "room-runtime", version.ref="roo
 room-ktx = {group = "androidx.room", name = "room-ktx", version.ref="room"}
 room-compiler = {group = "androidx.room", name = "room-compiler", version.ref="room"}
 androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
+fuel = { group="com.github.kittinunf.fuel", name="fuel", version.ref="fuel" }
+fuel-android = { group="com.github.kittinunf.fuel", name="fuel-android", version.ref="fuel" }
+fuel-gson = { group="com.github.kittinunf.fuel", name="fuel-gson", version.ref="fuel" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
