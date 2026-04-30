@@ -20,6 +20,18 @@ data class PointOfInterest(
     val description: String,
     val latLng: LatLng
 )
+
+data class POIJson(
+    val id: Long,
+    val name: String,
+    val type: String,
+    val country: String,
+    val region: String,
+    val lon: Double,
+    val lat: Double,
+    val description: String,
+    val recommendations: Int
+)
 class MainViewModel(app: Application): AndroidViewModel(app) {
 
     var db = POIDatabase.getDatabase(app)
@@ -79,6 +91,29 @@ class MainViewModel(app: Application): AndroidViewModel(app) {
                     recommendations = 0
                 )
                 db.poiDao().insert(entity)
+            }
+        }
+    }
+
+    fun savePOIsFromWeb(pois: List<POIJson>) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                pois.forEach { poi ->
+                    if (db.poiDao().getById(poi.id) == null) {
+                        val entity = POIEntity(
+                            id = poi.id,
+                            name = poi.name,
+                            type = poi.type,
+                            country = poi.country,
+                            region = poi.region,
+                            lat = poi.lat,
+                            lon = poi.lon,
+                            description = poi.description,
+                            recommendations = poi.recommendations
+                        )
+                        db.poiDao().insert(entity)
+                    }
+                }
             }
         }
     }
