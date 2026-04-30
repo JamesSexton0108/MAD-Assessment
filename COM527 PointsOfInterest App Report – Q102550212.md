@@ -91,3 +91,27 @@ being needed. The POIs with the searched for types will then be
 highlighted on the map using the circle instead of the marker. These
 circles will of course retain the ability to be clicked, showing their
 details as any other marker would.
+
+Part 6
+
+For part 6, I will use the supplied Node server to retrieve points of
+interests and display them on the map. The endpoint
+<http://10.0.2.2:3000/poi/all> will return an array of JSON objects
+which can be converted to PointsOfInterest objects in the app and stored
+in the local database. The lecture material covers two approaches to
+parsing JSON returned from a Fuel request - the standard JSON API using
+responseJson, and GSON using responseObject. GSON is the more
+appropriate choice here as it avoids having to manually extract each
+field from a JSONObject, instead automatically deserialising the JSON
+array into a list of Kotlin data class objects. A data class matching
+the structure of the JSON will be defined outside MainActivity, with
+properties corresponding to each field in the response. A button will be
+added to MapScreen to trigger the request. When tapped, Fuel will send a
+GET request to the endpoint and the response will be parsed into a list
+of data class objects. Each one will then be checked against the local
+database before being saved --- to avoid duplicate entries, a new DAO
+query method will be added to search for an existing record by its id.
+If no record with that id exists, the POI will be inserted; if one
+already exists it will be skipped. Once saved, the POIs will be added to
+the map as Symbol markers in the same way as locally stored POIs, by
+updating the poisList LiveData which MapScreen already observes.
