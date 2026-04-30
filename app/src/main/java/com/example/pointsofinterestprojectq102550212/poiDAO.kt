@@ -15,4 +15,7 @@ interface poiDAO {
 
     @Query("SELECT * FROM pointsofinterest WHERE type = :type COLLATE NOCASE")
     fun getByType(type: String): LiveData<List<POIEntity>>
+
+    @Query("SELECT * FROM  pointsofinterest WHERE id = :id")
+    fun getById(id: Long): POIEntity?
 }
