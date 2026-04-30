@@ -53,8 +53,15 @@ import kotlin.toString
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.github.kittinunf.fuel.httpGet
 import org.ramani.compose.Circle
 import org.ramani.compose.Symbol
+import com.github.kittinunf.fuel.core.Parameters
+import com.github.kittinunf.fuel.httpGet
+import com.github.kittinunf.fuel.gson.responseObject
+import com.github.kittinunf.fuel.httpPost
+import com.github.kittinunf.result.Result
+
 
 
 class MainActivity : ComponentActivity(), LocationListener {
@@ -120,6 +127,7 @@ class MainActivity : ComponentActivity(), LocationListener {
         var searchResults by remember { mutableStateOf(listOf<PointOfInterest>()) }
         var typeSearchText by remember { mutableStateOf("")}
         var selectedPOI by remember { mutableStateOf<PointOfInterest?>(null) }
+        var statusMessage by remember { mutableStateOf("") }
 
         viewModel.latLngLiveData.observe(this) {
             currentPosition = it
@@ -166,6 +174,13 @@ class MainActivity : ComponentActivity(), LocationListener {
                 }
             }
 
+            if (statusMessage.isNotEmpty()) {
+                Text(
+                    text = statusMessage,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+
             Row(modifier = Modifier.padding(8.dp)) {
                 TextField(
                     modifier = Modifier.weight(1f),
@@ -192,7 +207,34 @@ class MainActivity : ComponentActivity(), LocationListener {
                 onClick =  { navController.navigate("addPOIScreen") }) {
                 Text("Go to Add POI Screen")
             }
+
+            Button(
+                    modifier = Modifier.fillMaxWidth().padding(8.dp),
+            onClick = {
+                statusMessage = "Loading POIs from web..."
+                "http://10.0.2.2:3000/poi/all"
+                    .httpGet()
+                    .responseObject<List<POIJson>> { _, _, result ->
+                        when (result) {
+                            is Result.Success -> {
+                                val pois = result.get()
+                                viewModel.savePOIsFromWeb(pois)
+                                statusMessage = "Loaded ${pois.size} POIs from web."
+                            }
+                            is Result.Failure -> {
+                                statusMessage = "Error: ${result.error.message}"
+                            }
+                        }
+                    }
+            }
+            ) {
+            Text("Load POIs from Web")
         }
+        }
+
+
+
+
         selectedPOI?.let { poi ->
             POIDetailDialog(
                 poi = poi,
