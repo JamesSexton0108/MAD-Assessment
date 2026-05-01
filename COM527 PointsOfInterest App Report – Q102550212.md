@@ -115,3 +115,14 @@ If no record with that id exists, the POI will be inserted; if one
 already exists it will be skipped. Once saved, the POIs will be added to
 the map as Symbol markers in the same way as locally stored POIs, by
 updating the poisList LiveData which MapScreen already observes.
+
+Part 7
+
+For part 7, I will use Fuel's httpPost() for sending POST requests,
+passing the data in as a list of key-value pair objects. The server will
+return a newly assigned ID in response, which then needs to be used when
+creating the POIEntity for the local database. As the insert into the
+local database now depends on the server response (has to get the ID
+assigned by the server), it must now happen within the Fuel callback
+once the ID has been received. The addPOI() method in the viewModel will
+have to be replaced or altered to account for this.
