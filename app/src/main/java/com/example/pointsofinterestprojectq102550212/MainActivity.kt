@@ -68,7 +68,6 @@ class MainActivity : ComponentActivity(), LocationListener {
     val viewModel: MainViewModel by viewModels()
 
     @OptIn(ExperimentalMaterial3Api::class)
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         checkPermissions()
@@ -78,7 +77,7 @@ class MainActivity : ComponentActivity(), LocationListener {
                 val navController = rememberNavController()
                 val coroutineScope = rememberCoroutineScope()
 
-                Scaffold() { innerPadding ->
+                Scaffold { innerPadding ->
                     NavHost(
                         navController = navController,
                         startDestination = "mapScreen",
@@ -90,13 +89,15 @@ class MainActivity : ComponentActivity(), LocationListener {
                         composable("addPOIScreen") {
                             AddPOIScreen(
                                 currentLatLng = viewModel.latLng,
-                                returnToMapScreenCallback = { navController.popBackStack() })
+                                returnToMapScreenCallback = { navController.popBackStack() }
+                            )
                         }
                     }
                 }
             }
         }
     }
+
     fun checkPermissions() {
         val permissionLauncher =
             registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
@@ -113,30 +114,28 @@ class MainActivity : ComponentActivity(), LocationListener {
     fun startGPS() {
         val mgr = getSystemService(LOCATION_SERVICE) as LocationManager
         mgr.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, this)
-
     }
 
     override fun onLocationChanged(location: Location) {
         viewModel.latLng = LatLng(location.latitude, location.longitude)
     }
+
     @Composable
     fun MapScreen(navController: NavController) {
         var currentPosition by remember { mutableStateOf(viewModel.latLng) }
         var zoom by remember { mutableDoubleStateOf(viewModel.zoom) }
         var pois by remember { mutableStateOf(viewModel.poisList.value ?: emptyList()) }
         var searchResults by remember { mutableStateOf(listOf<PointOfInterest>()) }
-        var typeSearchText by remember { mutableStateOf("")}
+        var typeSearchText by remember { mutableStateOf("") }
         var selectedPOI by remember { mutableStateOf<PointOfInterest?>(null) }
         var statusMessage by remember { mutableStateOf("") }
 
         viewModel.latLngLiveData.observe(this) {
             currentPosition = it
         }
-
         viewModel.zoomLiveData.observe(this) {
             zoom = it
         }
-
         viewModel.poisList.observe(this) {
             pois = it
         }
@@ -144,41 +143,34 @@ class MainActivity : ComponentActivity(), LocationListener {
         val styleBuilder = Style.Builder()
             .fromUri("https://tiles.openfreemap.org/styles/bright")
 
-        Column{
+        Column {
             MapLibre(
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
                 styleBuilder = styleBuilder,
-                cameraPosition = CameraPosition(
-                    target = currentPosition,
-                    zoom = zoom
-                )
+                cameraPosition = CameraPosition(target = currentPosition, zoom = zoom)
             ) {
                 pois.forEach { poi ->
                     Symbol(
                         center = poi.latLng,
                         isDraggable = false,
-                        onClick = {
-                            selectedPOI = poi
-                        })
+                        onClick = { selectedPOI = poi }
+                    )
                 }
-                
                 searchResults.forEach { poi ->
                     Circle(
                         center = poi.latLng,
                         radius = 15f,
                         isDraggable = false,
                         color = "Blue",
-                        onClick = {
-                            selectedPOI = poi
-                        })
+                        onClick = { selectedPOI = poi }
+                    )
                 }
             }
 
             if (statusMessage.isNotEmpty()) {
-                Text(
-                    text = statusMessage,
-                    modifier = Modifier.padding(8.dp)
-                )
+                Text(text = statusMessage, modifier = Modifier.padding(8.dp))
             }
 
             Row(modifier = Modifier.padding(8.dp)) {
@@ -204,44 +196,38 @@ class MainActivity : ComponentActivity(), LocationListener {
 
             Button(
                 modifier = Modifier.fillMaxWidth().padding(8.dp),
-                onClick =  { navController.navigate("addPOIScreen") }) {
+                onClick = { navController.navigate("addPOIScreen") }
+            ) {
                 Text("Go to Add POI Screen")
             }
 
             Button(
-                    modifier = Modifier.fillMaxWidth().padding(8.dp),
-            onClick = {
-                statusMessage = "Loading POIs from web..."
-                "http://10.0.2.2:3000/poi/all"
-                    .httpGet()
-                    .responseObject<List<POIJson>> { _, _, result ->
-                        when (result) {
-                            is Result.Success -> {
-                                val pois = result.get()
-                                viewModel.savePOIsFromWeb(pois)
-                                statusMessage = "Loaded ${pois.size} POIs from web."
-                            }
-                            is Result.Failure -> {
-                                statusMessage = "Error: ${result.error.message}"
+                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                onClick = {
+                    statusMessage = "Loading POIs from web..."
+                    "http://10.0.2.2:3000/poi/all"
+                        .httpGet()
+                        .responseObject<List<POIJson>> { _, _, result ->
+                            when (result) {
+                                is Result.Success -> {
+                                    val webPois = result.get()
+                                    viewModel.savePOIsFromWeb(webPois)
+                                    statusMessage = "Loaded ${webPois.size} POIs from web."
+                                }
+                                is Result.Failure -> {
+                                    statusMessage = "Error: ${result.error.message}"
+                                }
                             }
                         }
-                    }
-            }
+                }
             ) {
-            Text("Load POIs from Web")
+                Text("Load POIs from Web")
+            }
         }
-        }
-
-
-
 
         selectedPOI?.let { poi ->
-            POIDetailDialog(
-                poi = poi,
-                onDismiss = { selectedPOI = null }
-            )
+            POIDetailDialog(poi = poi, onDismiss = { selectedPOI = null })
         }
-
     }
 
     @Composable
@@ -269,32 +255,29 @@ class MainActivity : ComponentActivity(), LocationListener {
 
     @Composable
     fun AddPOIScreen(currentLatLng: LatLng, returnToMapScreenCallback: () -> Unit) {
-
-        var nameText by remember { mutableStateOf("")}
-        var typeText by remember { mutableStateOf("")}
-        var countryText by remember { mutableStateOf("")}
-        var regionText by remember { mutableStateOf("")}
-        var descriptionText by remember { mutableStateOf("")}
+        var nameText by remember { mutableStateOf("") }
+        var typeText by remember { mutableStateOf("") }
+        var countryText by remember { mutableStateOf("") }
+        var regionText by remember { mutableStateOf("") }
+        var descriptionText by remember { mutableStateOf("") }
         var errorMessage by remember { mutableStateOf("") }
 
-        Column() {
+        Column {
             if (errorMessage.isNotEmpty()) {
                 Text(errorMessage)
             }
             TextField(
                 modifier = Modifier.padding(8.dp),
                 value = nameText,
-                onValueChange = {nameText = it},
-                label = {Text("Enter the name of the location")}
+                onValueChange = { nameText = it },
+                label = { Text("Enter the name of the location") }
             )
-
             TextField(
                 modifier = Modifier.padding(8.dp),
                 value = typeText,
-                onValueChange = {typeText = it},
-                label = {Text("Enter the type (pub, restaurant, hotel etc.) of the location")}
+                onValueChange = { typeText = it },
+                label = { Text("Enter the type (pub, restaurant, hotel etc.) of the location") }
             )
-
             TextField(
                 modifier = Modifier.padding(8.dp),
                 value = countryText,
@@ -307,46 +290,67 @@ class MainActivity : ComponentActivity(), LocationListener {
                 onValueChange = { regionText = it },
                 label = { Text("Enter the region") }
             )
-
             TextField(
                 modifier = Modifier.padding(8.dp),
                 value = descriptionText,
-                onValueChange = {descriptionText = it},
-                label = {Text("Enter a brief description of the location")}
+                onValueChange = { descriptionText = it },
+                label = { Text("Enter a brief description of the location") }
             )
+
             Row {
-                Button(modifier = Modifier.weight(1f),
-                onClick = {
-                    if (nameText.isBlank() || typeText.isBlank() ||
-                        countryText.isBlank() || regionText.isBlank() ||
-                        descriptionText.isBlank()) {
-                        errorMessage = "Please fill in all fields before adding."
-                    } else {
-
-                        val poi = PointOfInterest(
-                            name = nameText.trim(),
-                            type = typeText.trim(),
-                            country = countryText.trim(),
-                            region = regionText.trim(),
-                            description = descriptionText.trim(),
-                            latLng = currentLatLng
-                        )
-                    viewModel.addPOI(poi)
-                    }
-
-                }) {Text("Add marker to map.")}
-
-                Button(modifier = Modifier.weight(1f),
+                Button(
+                    modifier = Modifier.weight(1f),
                     onClick = {
-                    returnToMapScreenCallback()
-                }) { Text("Return") }
+                        if (nameText.isBlank() || typeText.isBlank() ||
+                            countryText.isBlank() || regionText.isBlank() ||
+                            descriptionText.isBlank()
+                        ) {
+                            errorMessage = "Please fill in all fields before adding."
+                        } else {
+                            val poi = PointOfInterest(
+                                name = nameText.trim(),
+                                type = typeText.trim(),
+                                country = countryText.trim(),
+                                region = regionText.trim(),
+                                description = descriptionText.trim(),
+                                latLng = currentLatLng
+                            )
+
+                            val postData = listOf(
+                                "name" to poi.name,
+                                "type" to poi.type,
+                                "description" to poi.description,
+                                "lat" to poi.latLng.latitude,
+                                "lon" to poi.latLng.longitude
+                            )
+
+                            "http://10.0.2.2:3000/poi/create"
+                                .httpPost(postData)
+                                .response { _, _, result ->
+                                    when (result) {
+                                        is Result.Success -> {
+                                            val newId = result.get().decodeToString().toLong()
+                                            viewModel.savePOIWithId(poi, newId)
+                                            returnToMapScreenCallback()
+                                        }
+                                        is Result.Failure -> {
+                                            errorMessage = "Error saving to server: ${result.error.message}"
+                                        }
+                                    }
+                                }
+                        }
+                    }
+                ) { Text("Add marker to map.") }
+
+                Button(
+                    modifier = Modifier.weight(1f),
+                    onClick = { returnToMapScreenCallback() }
+                ) { Text("Return") }
             }
         }
-
-
     }
-
 }
+
 
 
 
