@@ -126,3 +126,33 @@ local database now depends on the server response (has to get the ID
 assigned by the server), it must now happen within the Fuel callback
 once the ID has been received. The addPOI() method in the viewModel will
 have to be replaced or altered to account for this.
+
+Part 8
+
+This requirement replaces the plain button-based navigation used so far
+with a full navigation UI as described in the lecture material. Four
+navigation components will be added, all of which are defined within the
+Scaffold composable that is already in place. I will use the TopAppBar
+composable, placed in the topBar parameter of the Scaffold. It will
+display the app name as its title and contain a hamburger menu
+IconButton using the standard Icons.Filled.Menu icon. When clicked, this
+will open a ModalNavigationDrawer. Opening and closing the drawer is an
+animated process and must therefore be done inside a coroutine -
+drawerState.open() and drawerState.close() will be called inside
+coroutineScope.launch, with the drawer state managed by
+rememberDrawerState(). The ModalNavigationDrawer will wrap the NavHost
+and contain a ModalDrawerSheet with NavigationDrawerItem entries for the
+map screen, the add POI screen, and a \"Download POIs from Web\" item
+which will trigger the Fuel request directly rather than navigating to a
+new screen. Each item\'s onClick should close the drawer via
+coroutineScope.launch { drawerState.close() } before performing its
+action. A NavigationBar will be placed in the bottomBar parameter of the
+Scaffold, containing NavigationBarItem entries for the map screen and
+the add POI screen, each with an appropriate icon and label. A
+FloatingActionButton will be placed in the floatingActionButton
+parameter of the Scaffold, using Icons.Filled.Add as its icon,
+navigating to the add POI screen when tapped. Because all navigation
+components are now in place, the existing plain navigation buttons in
+MapScreen for adding a POI and loading from the web can be removed, as
+those actions are now accessible through the navigation drawer and
+floating action button respectively.
