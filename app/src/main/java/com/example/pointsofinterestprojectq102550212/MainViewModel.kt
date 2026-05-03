@@ -77,10 +77,11 @@ class MainViewModel(app: Application): AndroidViewModel(app) {
         }
     }
 
-    fun addPOI(poi: PointOfInterest) {
+    fun savePOIWithId(poi: PointOfInterest, id: Long) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val entity = POIEntity(
+                    id = id,
                     name = poi.name,
                     type = poi.type,
                     country = poi.country,
