@@ -18,12 +18,30 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
@@ -61,7 +79,7 @@ import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.gson.responseObject
 import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.result.Result
-
+import kotlinx.coroutines.launch
 
 
 class MainActivity : ComponentActivity(), LocationListener {
@@ -76,21 +94,125 @@ class MainActivity : ComponentActivity(), LocationListener {
             PointsOfInterestProjectQ102550212Theme {
                 val navController = rememberNavController()
                 val coroutineScope = rememberCoroutineScope()
+                val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
-                Scaffold { innerPadding ->
-                    NavHost(
-                        navController = navController,
-                        startDestination = "mapScreen",
-                        modifier = Modifier.padding(innerPadding)
-                    ) {
-                        composable("mapScreen") {
-                            MapScreen(navController)
-                        }
-                        composable("addPOIScreen") {
-                            AddPOIScreen(
-                                currentLatLng = viewModel.latLng,
-                                returnToMapScreenCallback = { navController.popBackStack() }
+                var statusMessage by remember { mutableStateOf("") }
+
+                ModalNavigationDrawer(
+                    drawerState = drawerState,
+                    gesturesEnabled = false,
+                    drawerContent = {
+                        ModalDrawerSheet {
+                            NavigationDrawerItem(
+                                label = { Text("Map") },
+                                selected = false,
+                                onClick = {
+                                    coroutineScope.launch { drawerState.close() }
+                                    navController.navigate("mapScreen")
+                                }
                             )
+                            NavigationDrawerItem(
+                                label = { Text("Add Point of Interest") },
+                                selected = false,
+                                onClick = {
+                                    coroutineScope.launch { drawerState.close() }
+                                    navController.navigate("addPOIScreen")
+                                }
+                            )
+
+                            NavigationDrawerItem(
+                                label = { Text("Download POIs from Web") },
+                                selected = false,
+                                onClick = {
+                                    coroutineScope.launch { drawerState.close() }
+                                    statusMessage = "Loading POIs from web..."
+                                    "http://10.0.2.2:3000/poi/all"
+                                        .httpGet()
+                                        .responseObject<List<POIJson>> { _, _, result ->
+                                            when (result) {
+                                                is Result.Success -> {
+                                                    val webPois = result.get()
+                                                    viewModel.savePOIsFromWeb(webPois)
+                                                    statusMessage = "Loaded ${webPois.size} POIs from web."
+                                                }
+                                                is Result.Failure -> {
+                                                    statusMessage = "Error: ${result.error.message}"
+                                                }
+                                            }
+                                        }
+                                }
+                            )
+                        }
+                    }
+                ) {
+                    Scaffold(
+                        topBar = {
+                            TopAppBar(
+                                colors = TopAppBarDefaults.topAppBarColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    titleContentColor = MaterialTheme.colorScheme.primary
+                                ),
+                                title = { Text("Points of Interest") },
+                                actions = {
+                                    IconButton(onClick = {
+                                        coroutineScope.launch {
+                                            if (drawerState.isClosed) {
+                                                drawerState.open()
+                                            } else {
+                                                drawerState.close()
+                                            }
+                                        }
+                                    }) {
+                                        Icon(imageVector = Icons.Filled.Menu, contentDescription = "Menu")
+                                    }
+                                }
+                            )
+                        },
+                        bottomBar = {
+                            NavigationBar {
+                                NavigationBarItem(
+                                    icon = { Icon(Icons.Filled.Home, contentDescription = "Map") },
+                                    label = { Text("Map") },
+                                    onClick = { navController.navigate("mapScreen") },
+                                    selected = false
+                                )
+                                NavigationBarItem(
+                                    icon = { Icon(Icons.Filled.Add, contentDescription = "Add POI") },
+                                    label = { Text("Add POI") },
+                                    onClick = { navController.navigate("addPOIScreen") },
+                                    selected = false
+                                )
+                                NavigationBarItem(
+                                    icon = { Icon(Icons.Filled.Search, contentDescription = "Search") },
+                                    label = { Text("Search") },
+                                    onClick = { navController.navigate("mapScreen") },
+                                    selected = false
+                                )
+                            }
+                        },
+                        floatingActionButton = {
+                            FloatingActionButton(
+                                onClick = { navController.navigate("addPOIScreen") },
+                                content = {
+                                    Icon(imageVector = Icons.Filled.Add, contentDescription = "Add POI")
+                                }
+                            )
+                        }
+                    ) { innerPadding ->
+                        NavHost(
+                            navController = navController,
+                            startDestination = "mapScreen",
+                            modifier = Modifier.padding(innerPadding)
+                        ) {
+                            composable("mapScreen") {
+                                MapScreen(navController, statusMessage) { statusMessage = it }
+                            }
+                            composable("addPOIScreen") {
+                                AddPOIScreen(
+                                    currentLatLng = viewModel.latLng,
+                                    returnToMapScreenCallback = { navController.popBackStack() }
+                                )
+                            }
                         }
                     }
                 }
@@ -121,24 +243,21 @@ class MainActivity : ComponentActivity(), LocationListener {
     }
 
     @Composable
-    fun MapScreen(navController: NavController) {
+    fun MapScreen(
+        navController: NavController,
+        statusMessage: String,
+        onStatusMessage: (String) -> Unit
+    ) {
         var currentPosition by remember { mutableStateOf(viewModel.latLng) }
         var zoom by remember { mutableDoubleStateOf(viewModel.zoom) }
         var pois by remember { mutableStateOf(viewModel.poisList.value ?: emptyList()) }
         var searchResults by remember { mutableStateOf(listOf<PointOfInterest>()) }
         var typeSearchText by remember { mutableStateOf("") }
         var selectedPOI by remember { mutableStateOf<PointOfInterest?>(null) }
-        var statusMessage by remember { mutableStateOf("") }
 
-        viewModel.latLngLiveData.observe(this) {
-            currentPosition = it
-        }
-        viewModel.zoomLiveData.observe(this) {
-            zoom = it
-        }
-        viewModel.poisList.observe(this) {
-            pois = it
-        }
+        viewModel.latLngLiveData.observe(this) { currentPosition = it }
+        viewModel.zoomLiveData.observe(this) { zoom = it }
+        viewModel.poisList.observe(this) { pois = it }
 
         val styleBuilder = Style.Builder()
             .fromUri("https://tiles.openfreemap.org/styles/bright")
@@ -173,7 +292,7 @@ class MainActivity : ComponentActivity(), LocationListener {
                 Text(text = statusMessage, modifier = Modifier.padding(8.dp))
             }
 
-            Row(modifier = Modifier.padding(8.dp)) {
+            Row(modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 80.dp)) {
                 TextField(
                     modifier = Modifier.weight(1f),
                     value = typeSearchText,
@@ -184,44 +303,15 @@ class MainActivity : ComponentActivity(), LocationListener {
                     modifier = Modifier.padding(start = 8.dp),
                     onClick = {
                         if (typeSearchText.isNotBlank()) {
-                            viewModel.searchByType(typeSearchText.trim()).observe(this@MainActivity) {
-                                searchResults = it
-                            }
+                            viewModel.searchByType(typeSearchText.trim())
+                                .observe(this@MainActivity) {
+                                    searchResults = it
+                                }
                         }
                     }
                 ) {
                     Text("Search")
                 }
-            }
-
-            Button(
-                modifier = Modifier.fillMaxWidth().padding(8.dp),
-                onClick = { navController.navigate("addPOIScreen") }
-            ) {
-                Text("Go to Add POI Screen")
-            }
-
-            Button(
-                modifier = Modifier.fillMaxWidth().padding(8.dp),
-                onClick = {
-                    statusMessage = "Loading POIs from web..."
-                    "http://10.0.2.2:3000/poi/all"
-                        .httpGet()
-                        .responseObject<List<POIJson>> { _, _, result ->
-                            when (result) {
-                                is Result.Success -> {
-                                    val webPois = result.get()
-                                    viewModel.savePOIsFromWeb(webPois)
-                                    statusMessage = "Loaded ${webPois.size} POIs from web."
-                                }
-                                is Result.Failure -> {
-                                    statusMessage = "Error: ${result.error.message}"
-                                }
-                            }
-                        }
-                }
-            ) {
-                Text("Load POIs from Web")
             }
         }
 
@@ -350,8 +440,6 @@ class MainActivity : ComponentActivity(), LocationListener {
         }
     }
 }
-
-
 
 
 
