@@ -34,6 +34,17 @@ app.post('/poi/create', (req, res) => {
     }
 });
 
+// Add a review
+app.post('/poi/review', (req, res) => {
+    try {
+        const stmt = db.prepare('INSERT INTO poi_reviews(poi_id, review) VALUES(?,?)');
+        stmt.run(req.body.poi_id, req.body.review);
+        res.send('Review added successfully.');
+    } catch(error) {
+        res.status(500).json({error: error});
+    }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}.`);
