@@ -156,3 +156,22 @@ components are now in place, the existing plain navigation buttons in
 MapScreen for adding a POI and loading from the web can be removed, as
 those actions are now accessible through the navigation drawer and
 floating action button respectively.
+
+Part 9
+
+This requirement needs the existing POIDetailDialog to allow the user to
+submit a review for a point of interest directly from the dialog that
+appears when a marker or circle is tapped. For a more complex custom
+layout including a text field and button, the plain Dialog composable is
+more suitable, as it allows any composable content to be placed inside
+it. The existing AlertDialog will therefore be replaced with a Dialog
+wrapping a Column. The column will contain the existing POI detail text,
+followed by a TextField for the review input and a button to submit it.
+A state variable will hold the text currently entered in the review
+field. The server will need a new route to accept reviews, and a POST
+request will be sent to it using Fuel\'s httpPost() when the review
+button is clicked, passing the POI ID and the review text as POST
+parameters. The dialog will remain open after submission so the user can
+see confirmation, with a status message shown inside the dialog
+indicating whether the review was submitted successfully or an error
+occurred.
