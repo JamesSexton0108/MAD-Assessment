@@ -12,6 +12,7 @@ import kotlinx.coroutines.withContext
 import org.maplibre.android.geometry.LatLng
 
 data class PointOfInterest(
+    val id: Long = 0,
     val name: String,
     val type: String,
     val country: String,
@@ -51,6 +52,7 @@ class MainViewModel(app: Application): AndroidViewModel(app) {
     var poisList: LiveData<List<PointOfInterest>> = db.poiDao().getAll().map { entities ->
         entities.map { entity ->
             PointOfInterest(
+                id = entity.id,
                 name = entity.name,
                 type = entity.type,
                 country = entity.country,
@@ -65,6 +67,7 @@ class MainViewModel(app: Application): AndroidViewModel(app) {
         return db.poiDao().getByType(type).map { entities ->
             entities.map { entity ->
                 PointOfInterest(
+                    id =entity.id,
                     name = entity.name,
                     type = entity.type,
                     country = entity.country,
