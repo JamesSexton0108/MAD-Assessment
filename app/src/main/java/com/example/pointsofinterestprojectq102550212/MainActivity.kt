@@ -13,6 +13,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -55,6 +56,7 @@ import androidx.compose.ui.graphics.Color.Companion.Blue
 import androidx.compose.ui.keepScreenOn
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -322,25 +324,84 @@ class MainActivity : ComponentActivity(), LocationListener {
 
     @Composable
     fun POIDetailDialog(poi: PointOfInterest, onDismiss: () -> Unit) {
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { Text(poi.name) },
-            text = {
-                Column {
-                    Text("Type: ${poi.type}")
-                    Text("Country: ${poi.country}")
-                    Text("Region: ${poi.region}")
-                    Text("Description: ${poi.description}")
-                    Text("Latitude: ${poi.latLng.latitude}")
-                    Text("Longitude: ${poi.latLng.longitude}")
+        var reviewText by remember { mutableStateOf("") }
+        var reviewStatusMessage by remember { mutableStateOf("") }
+
+        Dialog(onDismissRequest = onDismiss) {
+            Column(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = poi.name,
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Text("Type: ${poi.type}")
+                Text("Country: ${poi.country}")
+                Text("Region: ${poi.region}")
+                Text("Description: ${poi.description}")
+                Text("Latitude: ${poi.latLng.latitude}")
+                Text("Longitude: ${poi.latLng.longitude}")
+
+                TextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    value = reviewText,
+                    onValueChange = { reviewText = it },
+                    label = { Text("Write a review") }
+                )
+
+                if (reviewStatusMessage.isNotEmpty()) {
+                    Text(
+                        text = reviewStatusMessage,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
                 }
-            },
-            confirmButton = {
-                Button(onClick = onDismiss) {
-                    Text("Close")
+
+                Row(modifier = Modifier.padding(top = 8.dp)) {
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            if (reviewText.isNotBlank()) {
+                                val postData = listOf(
+                                    "poi_id" to poi.id,
+                                    "review" to reviewText.trim()
+                                )
+                                "http://10.0.2.2:3000/poi/review"
+                                    .httpPost(postData)
+                                    .response { _, _, result ->
+                                        when (result) {
+                                            is Result.Success -> {
+                                                reviewStatusMessage = "Review submitted!"
+                                                reviewText = ""
+                                            }
+                                            is Result.Failure -> {
+                                                reviewStatusMessage = "Error: ${result.error.message}"
+                                            }
+                                        }
+                                    }
+                            } else {
+                                reviewStatusMessage = "Please enter a review before submitting."
+                            }
+                        }
+                    ) {
+                        Text("Submit Review")
+                    }
+
+                    Button(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 8.dp),
+                        onClick = onDismiss
+                    ) {
+                        Text("Close")
+                    }
                 }
             }
-        )
+        }
     }
 
     @Composable
